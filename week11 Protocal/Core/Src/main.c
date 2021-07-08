@@ -36,6 +36,7 @@
 /* USER CODE BEGIN PD */
 //#define UARTDEBUG
 #define MAX_PACKET_LEN 255
+//#define UARTDEBUG
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -155,6 +156,7 @@ int main(void)
 	while (1)
 	{
 		int16_t inputChar = UARTReadChar(&UART2);
+		//if input char == -1 ==> No New data
 		if (inputChar != -1)
 		{
 #ifdef UARTDEBUG
@@ -366,11 +368,27 @@ void UARTTxDumpBuffer(UARTStucrture *uart)
 		}
 		MultiProcessBlocker = 0;
 	}
+
 }
 void UARTTxWrite(UARTStucrture *uart, uint8_t *pData, uint16_t len)
 {
+
+	//Variable  =  (expression) ? [True] : [False]
+
+	/*
+	 * if( len <= uart->TxLen)
+	 * {
+	 * 		lenAddBuffer = len;
+	 * }
+	 * else
+	 * {
+	 * 		lenAddBuffer = uart->TxLen;
+	 * }
+	 */
+
 	//check data len is more than buffur?
 	uint16_t lenAddBuffer = (len <= uart->TxLen) ? len : uart->TxLen;
+
 	// find number of data before end of ring buffer
 	uint16_t numberOfdataCanCopy =
 			lenAddBuffer <= uart->TxLen - uart->TxHead ?
@@ -416,6 +434,8 @@ void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
 	case DNMXP_1stHeader:
 		if (dataIn == 0xFF)
 			State = DNMXP_2ndHeader;
+		else
+			State = DNMXP_idle;
 		break;
 	case DNMXP_2ndHeader:
 		if (dataIn == 0xFD)

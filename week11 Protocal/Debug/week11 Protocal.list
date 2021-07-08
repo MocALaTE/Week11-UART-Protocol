@@ -838,6 +838,7 @@ void UARTInit(UARTStucrture *uart)
  800079a:	b082      	sub	sp, #8
  800079c:	af00      	add	r7, sp, #0
  800079e:	6078      	str	r0, [r7, #4]
+	//dynamic memory allocate
 	uart->RxBuffer = (uint8_t*) calloc(sizeof(uint8_t), UART2.RxLen);
  80007a0:	4b10      	ldr	r3, [pc, #64]	; (80007e4 <UARTInit+0x4c>)
  80007a2:	88db      	ldrh	r3, [r3, #6]
@@ -948,6 +949,7 @@ int16_t UARTReadChar(UARTStucrture *uart)
  800084c:	429c      	cmp	r4, r3
  800084e:	d013      	beq.n	8000878 <UARTReadChar+0x48>
 	{
+		//get data from buffer
 		Result = uart->RxBuffer[uart->RxTail];
  8000850:	687b      	ldr	r3, [r7, #4]
  8000852:	691b      	ldr	r3, [r3, #16]
@@ -1077,6 +1079,7 @@ void UARTTxDumpBuffer(UARTStucrture *uart)
  8000912:	2200      	movs	r2, #0
  8000914:	701a      	strb	r2, [r3, #0]
 	}
+
 }
  8000916:	bf00      	nop
  8000918:	3710      	adds	r7, #16
@@ -1086,7 +1089,6 @@ void UARTTxDumpBuffer(UARTStucrture *uart)
  8000920:	200001a3 	.word	0x200001a3
 
 08000924 <UARTTxWrite>:
-
 void UARTTxWrite(UARTStucrture *uart, uint8_t *pData, uint16_t len)
 {
  8000924:	b580      	push	{r7, lr}
@@ -1183,6 +1185,8 @@ void UARTTxWrite(UARTStucrture *uart, uint8_t *pData, uint16_t len)
  80009b2:	bd80      	pop	{r7, pc}
 
 080009b4 <DynamixelProtocal2>:
+
+
 void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
 		UARTStucrture *uart)
 {
@@ -1510,7 +1514,7 @@ void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
  8000ba8:	e02d      	b.n	8000c06 <DynamixelProtocal2+0x252>
 					packetSize - 2);
 		}
-		else
+		else//overlapse
 		{
 			uint16_t firstPartStart = uart->RxTail - packetSize + uart->RxLen;
  8000baa:	687b      	ldr	r3, [r7, #4]
@@ -1605,6 +1609,7 @@ void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
 				temp[4] = MotorID;
  8000c56:	7afb      	ldrb	r3, [r7, #11]
  8000c58:	f887 3040 	strb.w	r3, [r7, #64]	; 0x40
+				//calcuate CRC
 				uint16_t crc_calc = update_crc(0, temp, 9);
  8000c5c:	f107 033c 	add.w	r3, r7, #60	; 0x3c
  8000c60:	2209      	movs	r2, #9
@@ -1623,6 +1628,7 @@ void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
  8000c80:	b29b      	uxth	r3, r3
  8000c82:	b2db      	uxtb	r3, r3
  8000c84:	f887 3046 	strb.w	r3, [r7, #70]	; 0x46
+				//Sent Response Packet
 				UARTTxWrite(uart, temp, 11);
  8000c88:	f107 033c 	add.w	r3, r7, #60	; 0x3c
  8000c8c:	220b      	movs	r2, #11
@@ -1716,7 +1722,7 @@ void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
 				break;
  8000d4e:	e04f      	b.n	8000df0 <DynamixelProtocal2+0x43c>
 			{
-
+				//LAB
 			}
 			default: //Unknown Inst
 			{
